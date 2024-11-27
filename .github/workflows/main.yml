@@ -55,10 +55,10 @@ jobs:
             sudo npm install pm2@latest -g
 
             echo "Killing any running Java app..."
-            pkill -f "java -jar /home/***/app.jar" || true
+            pkill -f "java -jar /home/${{ secrets.VM_USERNAME }}/app.jar" || true
 
             echo "Starting Java app with PM2..."
-            pm2 start /home/***/app.jar --name java-app --watch
+            pm2 start /home/${{ secrets.VM_USERNAME }}/app.jar --name java-app --watch
             pm2 save
 
             echo "Java app started successfully with PM2."
