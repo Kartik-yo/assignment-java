@@ -53,7 +53,7 @@ jobs:
             sudo apt update && sudo apt install -y openjdk-17-jdk
 
             echo "Killing any running Java app..."
-            pkill -f "java -jar /home/${{ secrets.VM_USERNAME }}/app.jar" || true
+            pkill -f "/home/${{ secrets.VM_USERNAME }}/app.jar" || true
 
             echo "Starting Java app with PM2..."
             pm2 start /home/${{ secrets.VM_USERNAME }}/app.jar --name java-app --watch --log /home/${{ secrets.VM_USERNAME }}/app.log --output /home/${{ secrets.VM_USERNAME }}/pm2-out.log --error /home/${{ secrets.VM_USERNAME }}/pm2-error.log
