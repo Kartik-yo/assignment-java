@@ -58,11 +58,16 @@ jobs:
             pkill -f "java -jar /home/${{ secrets.VM_USERNAME }}/app.jar" || true
 
             echo "Starting Java app with PM2..."
-            pm2 start /home/${{ secrets.VM_USERNAME }}/app.jar --name java-app --watch
+            pm2 start /home/${{ secrets.VM_USERNAME }}/app.jar --name java-app --watch --log /home/${{ secrets.VM_USERNAME }}/app.log --output /home/${{ secrets.VM_USERNAME }}/pm2-out.log --error /home/${{ secrets.VM_USERNAME }}/pm2-error.log
+
+            # Save PM2 process list so it can restart after reboot
             pm2 save
 
-            echo "Java app started successfully with PM2."
+            # Make sure PM2 is running the app correctly
+            pm2 list
+            pm2 status
 
+            echo "Java app started successfully with PM2."
       env:
             JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
             JAVA_HOME_17_X64: /usr/lib/jvm/java-17-openjdk-amd64
