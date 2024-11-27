@@ -46,7 +46,7 @@ jobs:
         host: ${{ secrets.VM_HOST }}
         username: ${{ secrets.VM_USERNAME }}
         password: ${{ secrets.VM_PASSWORD }}
-        timeout: 60m   # Increase timeout to 60 minutes
+        timeout: 120m   # Increase timeout to 60 minutes
         port: 22
         script: |
             echo "Updating system..."
