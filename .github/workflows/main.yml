@@ -63,7 +63,7 @@ jobs:
 
             echo "Java app started successfully with PM2."
 
-          env:
+      env:
             JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
             JAVA_HOME_17_X64: /usr/lib/jvm/java-17-openjdk-amd64
 
