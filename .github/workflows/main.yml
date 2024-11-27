@@ -46,14 +46,11 @@ jobs:
         host: ${{ secrets.VM_HOST }}
         username: ${{ secrets.VM_USERNAME }}
         password: ${{ secrets.VM_PASSWORD }}
-        timeout: 120m   # Increase timeout to 60 minutes
+        timeout: 120m   # Increase timeout to 120 minutes
         port: 22
         script: |
             echo "Updating system..."
             sudo apt update && sudo apt install -y openjdk-17-jdk
-            echo "Installing PM2..."
-            sudo npm install pm2@latest -g
-            sleep 10
 
             echo "Killing any running Java app..."
             pkill -f "java -jar /home/${{ secrets.VM_USERNAME }}/app.jar" || true
