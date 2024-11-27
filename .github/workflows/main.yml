@@ -1,0 +1,83 @@
+name: Deploy Java App to VM
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout the repository
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    # Set up Java environment
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        java-version: 17
+
+    # Install dependencies (optional but ensures Maven setup is correct)
+    - name: Install dependencies
+      run: mvn install
+
+    # Build the Java application (produces the JAR file)
+    - name: Build JAR
+      run: mvn package
+
+    # Copy the JAR file to the VM
+    - name: Copy JAR to VM
+      uses: appleboy/scp-action@v0.1.5
+      with:
+        host: ${{ secrets.VM_HOST }}
+        username: ${{ secrets.VM_USERNAME }}
+        password: ${{ secrets.VM_PASSWORD }}
+        source: target/*.jar
+        target: /home/${{ secrets.VM_USERNAME }}/app.jar
+
+    # Run the Java app on the VM
+    - name: Run Java App on VM
+      uses: appleboy/ssh-action@v0.1.6
+      with:
+        host: ${{ secrets.VM_HOST }}
+        username: ${{ secrets.VM_USERNAME }}
+        password: ${{ secrets.VM_PASSWORD }}
+        script: |
+          sudo apt update
+          sudo apt install -y openjdk-17-jdk
+          pkill -f "java -jar /home/${{ secrets.VM_USERNAME }}/app.jar" || true
+          nohup java -jar /home/${{ secrets.VM_USERNAME }}/app.jar > /home/${{ secrets.VM_USERNAME }}/app.log 2>&1 &
+
+    # Build the Docker image
+    - name: Build Docker Image
+      run: docker build -t java-app:latest .
+
+    # Save Docker image as a tarball
+    - name: Save Docker Image as tar
+      run: docker save java-app:latest -o java-app.tar
+
+    # Copy Docker image tarball to the VM
+    - name: Copy Docker Image to VM
+      uses: appleboy/scp-action@v0.1.5
+      with:
+        host: ${{ secrets.VM_HOST }}
+        username: ${{ secrets.VM_USERNAME }}
+        password: ${{ secrets.VM_PASSWORD }}
+        source: java-app.tar
+        target: /tmp/java-app.tar
+
+    # SSH into the VM and deploy Docker container
+    - name: Deploy Docker App to VM
+      uses: appleboy/ssh-action@v0.1.6
+      with:
+        host: ${{ secrets.VM_HOST }}
+        username: ${{ secrets.VM_USERNAME }}
+        password: ${{ secrets.VM_PASSWORD }}
+        script: |
+          docker load < /tmp/java-app.tar
+          docker stop java-app || true
+          docker rm java-app || true
+          docker run -d --name java-app -p 8080:8080 java-app:latest
