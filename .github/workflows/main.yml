@@ -47,18 +47,26 @@ jobs:
         username: ${{ secrets.VM_USERNAME }}
         password: ${{ secrets.VM_PASSWORD }}
         timeout: 60m   # Increase timeout to 60 minutes
+        port: 22
         script: |
-          echo "Updating system..."
-          sudo apt update && sudo apt install -y openjdk-17-jdk
-          echo "Killing any running Java app..."
-          pkill -f "java -jar /home/${{ secrets.VM_USERNAME }}/app.jar" || true
-          echo "Starting Java app..."
-          nohup java -jar /home/${{ secrets.VM_USERNAME }}/app.jar > /home/${{ secrets.VM_USERNAME }}/app.log 2>&1 &
-          echo "Java app started successfully."
-      env:
-          JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
-          JAVA_HOME_17_X64: /usr/lib/jvm/java-17-openjdk-amd64
-          
+            echo "Updating system..."
+            sudo apt update && sudo apt install -y openjdk-17-jdk
+            echo "Installing PM2..."
+            sudo npm install pm2@latest -g
+
+            echo "Killing any running Java app..."
+            pkill -f "java -jar /home/***/app.jar" || true
+
+            echo "Starting Java app with PM2..."
+            pm2 start /home/***/app.jar --name java-app --watch
+            pm2 save
+
+            echo "Java app started successfully with PM2."
+
+          env:
+            JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+            JAVA_HOME_17_X64: /usr/lib/jvm/java-17-openjdk-amd64
+
     # Build the Docker image
     - name: Build Docker Image
       run: docker build -t java-app:latest .
